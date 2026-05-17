@@ -1,65 +1,64 @@
-import Image from "next/image";
+'use client';
+import { useState } from "react";
+
+interface Piece {
+  color: string;
+  type: string;
+  col: number;
+  row: number;
+  move: number;
+}
 
 export default function Home() {
+  const [activePiece, setActivePiece] = useState<Piece | null>(null);
+
+  const [rook, setRook] = useState<Piece>({
+    "color": "white",
+    "type": "rook",
+    "col": 0,
+    "row": 0,
+    "move": 0
+  });
+
+  const movePiece = (col: number, row: number, piece: Piece | null) => {
+    if (piece !== null && (col !== piece.col || row !== piece.row)) {
+      if (piece === rook) {
+        setRook({ ...rook, col, row, move: rook.move + 1 });
+      }
+      setActivePiece(null);
+      // alert([col][row] !== [rook.col][rook.row])
+    }
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <div className="grid grid-cols-8 self-center gap-0 mx-5 my-5 w-200 h-200 text-black">
+      {Array.from({ length: 8 }).map((_, row) =>
+        Array.from({ length: 8 }).map((_, col) => {
+          const letter = String.fromCharCode(97 + col);
+          return (
+            <div key={col}
+              className={`
+                ${row % 2 === 0 ? (col % 2 === 0 ? 'bg-[#3c465a]' : 'bg-[#e0e0e8]') : (col % 2 === 0 ? 'bg-[#e0e0e8]' : 'bg-[#3c465a]')}
+                w-full
+                h-full
+                relative
+              `}
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+              <div className="absolute top-0 left-0 p-1 text-xs">{letter}{row + 1}</div>
+              {col === rook.col && row === rook.row && (
+                <div onClick={() => { activePiece === rook ? setActivePiece(null) : setActivePiece(rook); }} className={`${activePiece === rook ? 'border-2 bg-[#5f5955]' : 'bg-[#5f5955]'} hover:border-2 border-blue-500 flex hover:bg-[#f0f0f0] rounded-full absolute w-15 h-15 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center justify-center`}>{rook.move}</div>
+              )}
+              {activePiece === rook && (col === rook.col || row === rook.row) && (col !== rook.col || row !== rook.row) && (
+                <div
+                  onClick={() => movePiece(col, row, activePiece ?? null)}
+                  className="w-full h-full bg-green-500/50 border border-white"
+                />
+              )}
+            </div>
+          )
+        })
+      )
+      }
     </div>
   );
 }
