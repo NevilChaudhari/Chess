@@ -132,10 +132,10 @@ export default function Home() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center">
+    <div className="flex flex-col items-center justify-center w-screen h-screen">
 
       {/* Chess Board */}
-      <div className="relative grid grid-cols-8 self-center gap-0 mx-5 my-5 w-200 h-200 text-black">
+      <div className="relative grid grid-cols-8 self-center gap-0 mx-5 my-5 md:w-200 md:h-200 w-90 h-90 text-black">
         {Array.from({ length: 8 }).map((_, row) =>
           Array.from({ length: 8 }).map((_, col) => {
             const letter = String.fromCharCode(97 + col);
