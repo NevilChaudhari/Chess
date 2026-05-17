@@ -8,11 +8,15 @@ interface Piece {
   col: number;
   row: number;
   move: number;
+  alive: boolean;
 }
+
+type Turn = "white" | "black";
 
 export default function Home() {
 
   const [moves, setMoves] = useState(0);
+  const [turn, setTurn] = useState("white");
 
   const [lastMove, setLastMove] = useState({
     "row": 0,
@@ -25,32 +29,106 @@ export default function Home() {
 
   const [activePiece, setActivePiece] = useState<Piece | null>(null);
 
-  const [rook, setRook] = useState<Piece>({
-    "sprite": "/pieces/rook-b.png",
-    "color": "black",
-    "type": "rook",
-    "col": 0,
-    "row": 0,
-    "move": 0
-  });
+  const [pieces, setPieces] = useState([
+    {
+      "sprite": "/pieces/rook-b.png",
+      "color": "black",
+      "type": "rook",
+      "col": 0,
+      "row": 0,
+      "move": 0,
+      "alive": true,
+    },
+    {
+      "sprite": "/pieces/rook-b.png",
+      "color": "black",
+      "type": "rook",
+      "col": 7,
+      "row": 0,
+      "move": 0,
+      "alive": true,
+    },
+    {
+      "sprite": "/pieces/pawn-b.png",
+      "color": "black",
+      "type": "pawn",
+      "col": 0,
+      "row": 1,
+      "move": 0,
+      "alive": true,
+    },
+    {
+      "sprite": "/pieces/rook-w.png",
+      "color": "white",
+      "type": "rook",
+      "col": 0,
+      "row": 7,
+      "move": 0,
+      "alive": true,
+    },
+    {
+      "sprite": "/pieces/rook-w.png",
+      "color": "white",
+      "type": "rook",
+      "col": 7,
+      "row": 7,
+      "move": 0,
+      "alive": true,
+    },
+    {
+      "sprite": "/pieces/pawn-w.png",
+      "color": "white",
+      "type": "pawn",
+      "col": 7,
+      "row": 6,
+      "move": 0,
+      "alive": true,
+    },
+  ])
 
   const movePiece = (col: number, row: number, piece: Piece | null) => {
     if (piece !== null && (col !== piece.col || row !== piece.row)) {
-      if (piece === rook) {
-        setRook({ ...rook, col, row, move: rook.move + 1 });
-      }
+
+      setPieces(prev => prev.map((p, i) => {
+        if (p.row === row && p.col === col && piece.color !== p.color) {
+          return { ...p, alive: false }
+        }
+        if (p === activePiece) {
+          return { ...p, col, row, move: p.move + 1 }
+        }
+        return p;
+      })
+      )
+
       setLastMove({
         "row": piece.row,
         "col": piece.col
       })
+
       setNewMove({
         "row": row,
         "col": col
       })
+
       setMoves(moves + 1);
+
+      if (turn === 'white') {
+        setTurn('black');
+      } else {
+        setTurn('white');
+      }
+
       setActivePiece(null);
-      // alert([col][row] !== [rook.col][rook.row])
     }
+  }
+
+  const Dots = ({ col, row }: { col: number, row: number }) => {
+    return (<div
+      onClick={() => movePiece(col, row, activePiece ?? null)}
+      className="w-full h-full flex items-center justify-center transition-all duration-100 absolute z-10"
+    >
+      <div className="flex w-8 h-8 bg-gray-500/50 rounded-full items-center justify-center text-white" >{row},{col}</div>
+    </div>)
   }
 
   return (
@@ -70,29 +148,36 @@ export default function Home() {
                 relative
               `}
               >
-                <div className="absolute top-0 left-0 p-1 text-xs">{letter}{row + 1}</div>
+                <div className="absolute top-0 left-0 p-1 text-xs">{row},{col}</div>
 
-                {/* Piece */}
-                {col === rook.col && row === rook.row && (
-                  <div onClick={() => { activePiece === rook ? setActivePiece(null) : setActivePiece(rook); }} className={`${activePiece === rook ? 'bg-blue-300' : ''} w-full h-auto flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center justify-center transition-all duration-100 z-10`}
-                  >
-                    {/* <div className="flex">{mousePos.x}</div> */}
-                    <img src={rook.sprite} draggable={false} className="w-full h-full select-none object-cover" />
+                {/* Pieces */}
+                {pieces.map((p, index) => (
+                  <div key={index} className="flex">
+
+                    {/* Piece */}
+                    {(col === p.col && row === p.row) && p.alive && (<div onClick={() => { (activePiece === p || turn !== p.color) ? setActivePiece(null) : setActivePiece(p); }} className={`${activePiece === p ? 'bg-blue-300' : ''} w-full h-auto flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center justify-center transition-all duration-100 z-5`} >
+                      <img src={p.sprite} draggable={false} className="w-full h-full select-none object-cover" />
+                    </div>)}
                   </div>
+                )
                 )}
 
-                {/* Moves */}
-                {activePiece === rook && (col === rook.col || row === rook.row) && (col !== rook.col || row !== rook.row) && (
-                  <div
-                    onClick={() => movePiece(col, row, activePiece ?? null)}
-                    className="w-full h-full flex items-center justify-center transition-all duration-100 absolute z-5"
-                  >
-                    <div className="flex w-8 h-8 bg-gray-500/50 rounded-full" />
-                  </div>
+                {/* Rook Moves */}
+                {activePiece && activePiece.type === 'rook' && (col === activePiece.col || row === activePiece.row) && (col !== activePiece.col || row !== activePiece.row) && (
+                  <Dots col={col} row={row} />
                 )}
+
+                {/* Pawn Moves */}
+                {activePiece && activePiece.type === 'pawn' && (col !== activePiece.col || row !== activePiece.row) && col === activePiece.col && 
+                (activePiece.color === 'white' 
+                ? row >= (activePiece.row - (activePiece.move > 0 ? 1 : 2)) && row < (activePiece.row) 
+                : row <= (activePiece.row + (activePiece.move > 0 ? 1 : 2)) && row > (activePiece.row)) && (
+                  <Dots col={col} row={row} />
+                )}
+
+                {/* show previous position and new position */}
                 {moves > 0 && (row === lastMove.row || row === newMove.row) && (col === lastMove.col || col === newMove.col) && (
                   <div
-                    onClick={() => movePiece(col, row, activePiece ?? null)}
                     className="w-full h-full bg-yellow-300/50 flex items-center justify-center transition-all duration-100 absolute z-0" />
                 )}
               </div>
